@@ -1,0 +1,37 @@
+---
+title: "p8105_hw3_jj3205"
+author: "Jia Ji (jj3205)"
+date: "2022-10-15"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1
+
+```{r}
+library(p8105.datasets)
+data("instacart")
+
+```
+
+## Problem 2
+
+```{r}
+
+
+
+```
+
+
+
+## Problem 3
+
+```{r}
+
+
+
+```
+
