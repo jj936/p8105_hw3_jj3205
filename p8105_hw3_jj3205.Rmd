@@ -40,7 +40,7 @@ acce_df
 ```
 
 
-The accel_data_clean dataset contains `r nrow(accel_data_clean)` observations and `r ncol(accel_data_clean)` variables.   
+The accel_data_clean dataset contains `r nrow(acce_df)` observations and `r ncol(acce_df)` variables.   
 The variables records these information for each observation: week, day_id, which day in a week, is it weekend or not, activity number, and activity counts.   
 
 Traditional analyses of accelerometer data focus on the total activity over the day. Using the tidied dataset, we will aggregate across minutes to create a total activity variable for each day, and create a table showing these totals.
@@ -94,7 +94,73 @@ There are also significant higher peaks of average activity counts at around 10:
 
 ```{r}
 
+library(p8105.datasets)
+data("ny_noaa")
 
 
 ```
 
+
+```{r message = FALSE, warning = FALSE}
+snow_df = ny_noaa %>% 
+  separate(date, c("year", "month", "day"), sep = "-") %>%
+  mutate(
+    year = as.numeric(year),
+    month = as.numeric(month),
+    day = as.numeric(day),
+    prcp = as.numeric(prcp)*0.1,
+    tmax = as.numeric(tmax)*0.1,
+    tmin = as.numeric(tmin)*0.1)
+```
+
+``
+
+The tidied dataset contains `r ncol(snow_df)` columns and `r nrow(snow_df)` rows.
+Variables are: weather station ID, year, month, day, precipitation (in mm), snowfall (in mm), snow depth (in mm), maximum temperature (in degree C), minimum temperature (in degree C). 
+There are a lot of missing values in this data set: 
+The precipitation variable has `r sum(is.na(snow_df$prcp))` missing values;
+The snowfall has `r sum(is.na(snow_df$snow))` missing values;
+The snow depth variable has `r sum(is.na(snow_df$snwd))` missing values;
+The minimum temperature has `r sum(is.na(snow_df$tmin))` missing values;
+The maximum temperature has `r sum(is.na(snow_df$tmax))` missing values.
+
+For snowfall, most commonly observed values is 0, there are `r snow_df %>% filter(snow == 0) %>% nrow()` rows with a 0 snowfall record.
+Plot showing the average max temperature in January and in July in each station across years:
+
+```{r, message = FALSE, warning = FALSE}
+snow_df %>%
+  filter(month == 1 | month == 7) %>%
+  group_by(id, year, month) %>%
+  mutate(
+    avg_tmax = mean(tmax, na.rm = TRUE),
+    month = month.name[month]) %>%
+  ggplot(aes(x = year, y = avg_tmax, color = month)) + 
+  geom_point(size = 0.1)+
+  geom_smooth(alpha = 0.5, se = FALSE) +
+  facet_grid(~month)+
+  theme(legend.position="none")+
+  scale_color_manual(values=c("blue", "red"))
+```
+
+
+Observable and interpretable structure: It is warmer in July overall. The average maximum temperature among different stations has a smaller fluctuation range among July over the years, as compared to January. It seems that there is not apparent global warming trend from this plot. There seem to be extremely cold winters around 1993~1994 and around 2002-2004.
+
+
+Make a two-panel plot that consist of maximum temperature vs minimum temperature for the full dataset distribution of snowfall values (between 0 and 100) over the years.
+
+```{r, message = FALSE, warning = FALSE}
+library("patchwork")
+snow_a <- 
+  snow_df %>% 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex()
+snow_b <- 
+snow_df %>% 
+  filter(snow < 100 & snow > 0) %>%
+  mutate(year = factor(year)) %>%
+  ggplot(aes(x = year, y = snow)) + 
+  geom_violin(aes(fill = year), alpha = 0.3, draw_quantiles = c(0.25, 0.5, 0.75))+
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position="none")
+snow_a/snow_b
+```
